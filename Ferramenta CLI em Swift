@@ -10,57 +10,53 @@ func readFile(at path: String) -> String? {
 }
 
 func countWords(in text: String) -> Int {
-    let words = text.split { $0.isWhitespace || $0.isNewline }
+    let words = text.split { !$0.isLetter }
     return words.count
 }
 
 func searchWord(in text: String, word: String) -> Int {
-    let words = text.split { $0.isWhitespace || $0.isNewline }
+    let words = text.split { !$0.isLetter }
     return words.filter { $0.lowercased() == word.lowercased() }.count
 }
 
 func replaceWord(in text: String, oldWord: String, newWord: String) -> String {
-    return text.replacingOccurrences(of: oldWord, with: newWord, options: .caseInsensitive)
+    return text.replacingOccurrences(of: oldWord, with: newWord)
 }
 
 func main() {
-    let arguments = CommandLine.arguments
-    guard arguments.count > 2 else {
-        print("Uso: \(arguments[0]) <caminho_do_arquivo> <comando> [<palavra> | <palavra_antiga> <palavra_nova>]")
+    guard CommandLine.arguments.count >= 3 else {
+        print("Uso: \(CommandLine.arguments[0]) <comando> <arquivo> [opções]")
         return
     }
-    
-    let filePath = arguments[1]
+
+    let command = CommandLine.arguments[1]
+    let filePath = CommandLine.arguments[2]
+
     guard let fileContent = readFile(at: filePath) else { return }
-    
-    let command = arguments[2]
-    
+
     switch command {
     case "count":
         let wordCount = countWords(in: fileContent)
-        print("Total de palavras: \(wordCount)")
-        
+        print("Número de palavras: \(wordCount)")
     case "search":
-        guard arguments.count == 4 else {
-            print("Uso: \(arguments[0]) <caminho_do_arquivo> search <palavra>")
+        guard CommandLine.arguments.count == 4 else {
+            print("Uso: \(CommandLine.arguments[0]) search <arquivo> <palavra>")
             return
         }
-        let searchWordArg = arguments[3]
-        let count = searchWord(in: fileContent, word: searchWordArg)
-        print("A palavra '\(searchWordArg)' aparece \(count) vezes.")
-        
+        let searchTerm = CommandLine.arguments[3]
+        let occurrences = searchWord(in: fileContent, word: searchTerm)
+        print("A palavra '\(searchTerm)' aparece \(occurrences) vezes.")
     case "replace":
-        guard arguments.count == 5 else {
-            print("Uso: \(arguments[0]) <caminho_do_arquivo> replace <palavra_antiga> <palavra_nova>")
+        guard CommandLine.arguments.count == 5 else {
+            print("Uso: \(CommandLine.arguments[0]) replace <arquivo> <palavra_antiga> <nova_palavra>")
             return
         }
-        let oldWord = arguments[3]
-        let newWord = arguments[4]
+        let oldWord = CommandLine.arguments[3]
+        let newWord = CommandLine.arguments[4]
         let updatedContent = replaceWord(in: fileContent, oldWord: oldWord, newWord: newWord)
         print("Conteúdo atualizado:\n\(updatedContent)")
-        
     default:
-        print("Comando desconhecido: \(command)")
+        print("Comando desconhecido.")
     }
 }
 
