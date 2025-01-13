@@ -1,0 +1,211 @@
+import SwiftUI
+
+// Funções de manipulação de texto
+func readFile(at path: String) -> String? {
+    do {
+        return try String(contentsOfFile: path, encoding: .utf8)
+    } catch {
+        print("Erro ao ler o arquivo: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+func countWords(in text: String) -> Int {
+    let words = text.split { !$0.isLetter }
+    return words.count
+}
+
+func searchWord(in text: String, word: String) -> Int {
+    let words = text.split { !$0.isLetter }
+    return words.filter { $0.lowercased() == word.lowercased() }.count
+}
+
+func replaceWord(in text: String, oldWord: String, newWord: String) -> String {
+    return text.replacingOccurrences(of: oldWord, with: newWord)
+}
+
+// Estrutura da interface
+struct ContentView: View {
+    @State private var filePath: String = ""
+    @State private var fileContent: String = ""
+    @State private var command: String = "count"
+    @State private var wordToSearch: String = ""
+    @State private var oldWord: String = ""
+    @State private var newWord: String = ""
+    @State private var resultMessage: String = ""
+    @State private var isLoading: Bool = false
+    
+    let fileManager = FileManager.default
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                // Título do App
+                Text("Processador de Texto")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, 20)
+                    .foregroundColor(.blue)
+                
+                // Seletor de Arquivo
+                Button(action: {
+                    selectFile()
+                }) {
+                    Text("Escolher Arquivo")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                
+                // Exibição do Caminho do Arquivo Selecionado
+                Text(filePath.isEmpty ? "Nenhum arquivo selecionado" : filePath)
+                    .padding(.top, 10)
+                    .font(.body)
+                    .foregroundColor(.gray)
+                
+                // Picker de Comando
+                Picker("Comando", selection: $command) {
+                    Text("Contar Palavras").tag("count")
+                    Text("Buscar Palavra").tag("search")
+                    Text("Substituir Palavra").tag("replace")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
+                
+                // Campos de entrada para busca e substituição
+                if command == "search" {
+                    TextField("Digite a palavra para buscar", text: $wordToSearch)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                } else if command == "replace" {
+                    TextField("Palavra Antiga", text: $oldWord)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    
+                    TextField("Nova Palavra", text: $newWord)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                }
+                
+                // Botão de execução do comando
+                Button(action: {
+                    executeCommand()
+                }) {
+                    Text("Executar")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                .disabled(isLoading)
+                
+                // Indicador de Carregamento
+                if isLoading {
+                    ProgressView("Processando...")
+                        .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                        .padding(.top)
+                }
+                
+                // Exibição do resultado
+                if !resultMessage.isEmpty {
+                    Text(resultMessage)
+                        .font(.body)
+                        .padding()
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                        .padding(.top, 20)
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationBarHidden(true)
+        }
+    }
+    
+    // Função para selecionar o arquivo
+    private func selectFile() {
+        let dialog = NSOpenPanel()
+        dialog.title = "Escolha um arquivo de texto"
+        dialog.canChooseFiles = true
+        dialog.allowedFileTypes = ["txt"]
+        
+        if dialog.runModal() == .OK {
+            if let url = dialog.url {
+                filePath = url.path
+                if let content = readFile(at: filePath) {
+                    fileContent = content
+                }
+            }
+        }
+    }
+    
+    // Função para executar o comando selecionado
+    private func executeCommand() {
+        guard !fileContent.isEmpty else {
+            resultMessage = "Por favor, selecione um arquivo primeiro."
+            return
+        }
+        
+        isLoading = true
+        
+        // Simula um pequeno atraso no processamento
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            switch command {
+            case "count":
+                let wordCount = countWords(in: fileContent)
+                resultMessage = "Número de palavras: \(wordCount)"
+                
+            case "search":
+                guard !wordToSearch.isEmpty else {
+                    resultMessage = "Por favor, insira uma palavra para buscar."
+                    return
+                }
+                let occurrences = searchWord(in: fileContent, word: wordToSearch)
+                resultMessage = "A palavra '\(wordToSearch)' aparece \(occurrences) vezes."
+                
+            case "replace":
+                guard !oldWord.isEmpty && !newWord.isEmpty else {
+                    resultMessage = "Por favor, insira as palavras para substituir."
+                    return
+                }
+                let updatedContent = replaceWord(in: fileContent, oldWord: oldWord, newWord: newWord)
+                resultMessage = "Conteúdo atualizado:\n\(updatedContent)"
+                
+            default:
+                resultMessage = "Comando desconhecido."
+            }
+            
+            isLoading = false
+        }
+    }
+}
+
+// Estrutura principal do app
+@main
+struct WordProcessorApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
