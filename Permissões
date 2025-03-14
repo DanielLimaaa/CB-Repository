@@ -1,0 +1,22 @@
+import UIKit
+import UserNotifications
+
+class ViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Solicitar permissão para enviar notificações
+        requestNotificationPermission()
+    }
+    
+    func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                print("Permissão para notificações concedida.")
+            } else {
+                print("Permissão para notificações negada.")
+            }
+        }
+    }
+}
