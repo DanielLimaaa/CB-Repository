@@ -1,0 +1,26 @@
+struct ContentView: View {
+    @State private var scale: CGFloat = 1.0
+
+    var body: some View {
+        NavigationView {
+            List(itemData) { item in
+                NavigationLink(destination: DetailView(item: item)) {
+                    ItemRow(item: item)
+                        .scaleEffect(scale) // Aplica o efeito de escala
+                        .onTapGesture {
+                            withAnimation {
+                                scale = 1.2 // Aumenta a escala ao tocar
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation {
+                                    scale = 1.0 // Restaura a escala
+                                }
+                            }
+                        }
+                }
+                .listRowInsets(EdgeInsets())
+            }
+            .navigationBarTitle("Itens", displayMode: .large)
+        }
+    }
+}
