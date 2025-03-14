@@ -1,0 +1,60 @@
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        NavigationView {
+            List(itemData) { item in
+                NavigationLink(destination: DetailView(item: item)) {
+                    ItemRow(item: item)
+                }
+                .listRowInsets(EdgeInsets()) // Remove padding excessivo
+            }
+            .navigationBarTitle("Itens", displayMode: .large)
+            .listStyle(InsetGroupedListStyle()) // Um estilo mais moderno para iOS
+        }
+    }
+}
+
+struct ItemRow: View {
+    var item: Item
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "star.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .foregroundColor(.yellow)
+            
+            Text(item.name)
+                .font(.headline)
+                .padding(.leading, 8)
+            
+            Spacer()
+            
+            Text(item.details)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct Item: Identifiable {
+    var id = UUID()
+    var name: String
+    var details: String
+}
+
+let itemData = [
+    Item(name: "Item 1", details: "Detalhes do item 1"),
+    Item(name: "Item 2", details: "Detalhes do item 2"),
+    Item(name: "Item 3", details: "Detalhes do item 3"),
+]
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .previewDevice("iPhone 14 Pro")
+    }
+}
