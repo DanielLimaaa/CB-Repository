@@ -1,0 +1,48 @@
+import UIKit
+import UserNotifications
+
+class ViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Solicitar permissão para enviar notificações
+        requestNotificationPermission()
+        
+        // Agendar uma notificação
+        scheduleLocalNotification()
+    }
+    
+    func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                print("Permissão para notificações concedida.")
+            } else {
+                print("Permissão para notificações negada.")
+            }
+        }
+    }
+    
+    func scheduleLocalNotification() {
+        // Criar o conteúdo da notificação
+        let content = UNMutableNotificationContent()
+        content.title = "Lembrete"
+        content.body = "Este é um lembrete de exemplo."
+        content.sound = UNNotificationSound.default
+        
+        // Definir o gatilho para a notificação (em 5 segundos)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        
+        // Criar a requisição da notificação
+        let request = UNNotificationRequest(identifier: "LocalNotification", content: content, trigger: trigger)
+        
+        // Adicionar a requisição ao centro de notificações
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Erro ao agendar notificação: \(error.localizedDescription)")
+            } else {
+                print("Notificação agendada com sucesso!")
+            }
+        }
+    }
+}
