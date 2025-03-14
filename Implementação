@@ -1,0 +1,19 @@
+struct DetailView: View {
+    var item: Item
+    
+    var body: some View {
+        VStack {
+            Text(item.name)
+                .font(.largeTitle)
+                .padding(.top, 40)
+            
+            Text(item.details)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding(.top, 20)
+            
+            Spacer()
+        }
+        .navigationBarTitle("Detalhes", displayMode: .inline)
+    }
+}
